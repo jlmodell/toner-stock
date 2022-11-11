@@ -22,6 +22,7 @@ export default function Home() {
   const query = useQuery({ queryKey: ["toners"], queryFn: getTonerStock });
   const [newToner, setNewToner] = useState<Toner>(initialToner);
   const [alternatives, setAlternatives] = useState<string>("");
+  const [editMode, setEditMode] = useState<boolean>(false);
 
   const mutation = useMutation({
     mutationFn: async (toner: Toner) => {
@@ -30,20 +31,37 @@ export default function Home() {
         throw new Error("Invalid toner");
       }
 
-      const response = await axios.post(
-        `/api/toner/${toner.id.toUpperCase()}/add`,
-        toner
-      );
+      if (editMode) {
+        const response = await axios.put(
+          `/api/toner/${toner.id.toUpperCase()}/put`,
+          toner
+        );
 
-      if (response.status !== 200) {
-        throw new Error("Error adding toner");
+        if (response.status !== 200) {
+          throw new Error("Error updating toner");
+        }
+
+        query.refetch();
+        setNewToner(initialToner);
+        setEditMode(false);
+
+        return response.data;
+      } else {
+        const response = await axios.post(
+          `/api/toner/${toner.id.toUpperCase()}/add`,
+          toner
+        );
+
+        if (response.status !== 200) {
+          throw new Error("Error adding toner");
+        }
+
+        setNewToner(initialToner);
+
+        query.refetch();
+
+        return response.data;
       }
-
-      setNewToner(initialToner);
-
-      query.refetch();
-
-      return response.data;
     },
   });
 
@@ -93,9 +111,18 @@ export default function Home() {
                     <td className="border px-4 py-2">{toner.quantity}</td>
                     <td className="border px-4 py-2">0</td>
                     <td className="border px-4 py-2">{toner.quantity}</td>
-                    <td className="border px-4 py-2">
+                    <td className="border px-4 py-2 flex space-x-2">
                       <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                         Request
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditMode(true);
+                          setNewToner(toner);
+                        }}
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                      >
+                        Edit
                       </button>
                     </td>
                   </tr>
@@ -109,7 +136,10 @@ export default function Home() {
           <form
             className="flex flex-col space-y-4"
             onSubmit={onSubmitHandler}
-            onReset={() => setNewToner(initialToner)}
+            onReset={() => {
+              setNewToner(initialToner);
+              setEditMode(false);
+            }}
           >
             <div className="flex space-x-4">
               <div className="flex flex-col">
@@ -245,7 +275,7 @@ export default function Home() {
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-xs"
                 type="submit"
               >
-                Submit Toner
+                {editMode ? "Edit" : "Submit"} Toner
               </button>
               <button
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-xs"
