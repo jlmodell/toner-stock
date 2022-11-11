@@ -112,7 +112,12 @@ export default function Home() {
                     <td className="border px-4 py-2">0</td>
                     <td className="border px-4 py-2">{toner.quantity}</td>
                     <td className="border px-4 py-2 flex space-x-2">
-                      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                      <button
+                        onClick={() => {
+                          alert("Not implemented yet");
+                        }}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      >
                         Request
                       </button>
                       <button
